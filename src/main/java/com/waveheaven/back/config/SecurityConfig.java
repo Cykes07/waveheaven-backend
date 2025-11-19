@@ -64,6 +64,18 @@ public class SecurityConfig {
                         // Usuarios: solo admin
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
 
+                        // Reservaciones: disponibilidad pública, resto autenticado
+                        .requestMatchers(HttpMethod.GET, "/api/reservations/product/*/availability").permitAll()
+                        .requestMatchers("/api/reservations/**").authenticated()
+
+                        // Favoritos: requiere autenticación
+                        .requestMatchers("/api/favorites/**").authenticated()
+
+                        // Reviews: lectura pública, escritura autenticada
+                        .requestMatchers(HttpMethod.GET, "/api/reviews/product/*/rating").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/reviews/product/*").permitAll()
+                        .requestMatchers("/api/reviews/**").authenticated()
+
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

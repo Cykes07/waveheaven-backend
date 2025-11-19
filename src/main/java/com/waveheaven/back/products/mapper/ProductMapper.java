@@ -4,8 +4,10 @@ import com.waveheaven.back.characteristics.dto.CharacteristicResponse;
 import com.waveheaven.back.characteristics.entity.Characteristic;
 import com.waveheaven.back.products.dto.CreateProductRequest;
 import com.waveheaven.back.products.dto.ImageDTO;
+import com.waveheaven.back.products.dto.PolicyDTO;
 import com.waveheaven.back.products.dto.ProductResponse;
 import com.waveheaven.back.products.entity.Image;
+import com.waveheaven.back.products.entity.Policy;
 import com.waveheaven.back.products.entity.Product;
 import org.springframework.stereotype.Component;
 
@@ -48,6 +50,12 @@ public class ProductMapper {
                     .collect(Collectors.toList())
                 : Collections.emptyList();
 
+        List<PolicyDTO> policyDTOs = product.getPolicies() != null
+                ? product.getPolicies().stream()
+                    .map(this::toPolicyDTO)
+                    .collect(Collectors.toList())
+                : Collections.emptyList();
+
         return ProductResponse.builder()
                 .id(product.getId())
                 .name(product.getName())
@@ -56,8 +64,17 @@ public class ProductMapper {
                 .categoryTitle(product.getCategory() != null ? product.getCategory().getTitle() : null)
                 .characteristics(characteristicDTOs)
                 .images(imageDTOs)
+                .policies(policyDTOs)
                 .createdAt(product.getCreatedAt())
                 .updatedAt(product.getUpdatedAt())
+                .build();
+    }
+
+    private PolicyDTO toPolicyDTO(Policy policy) {
+        return PolicyDTO.builder()
+                .id(policy.getId())
+                .title(policy.getTitle())
+                .description(policy.getDescription())
                 .build();
     }
 

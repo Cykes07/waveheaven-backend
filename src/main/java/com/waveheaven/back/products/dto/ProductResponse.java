@@ -23,6 +23,7 @@ public class ProductResponse {
     private String categoryTitle;
     private List<CharacteristicResponse> characteristics;
     private List<ImageDTO> images;
+    private List<PolicyDTO> policies;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

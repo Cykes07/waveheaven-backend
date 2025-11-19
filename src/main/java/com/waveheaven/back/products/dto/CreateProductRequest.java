@@ -31,4 +31,7 @@ public class CreateProductRequest {
     @NotEmpty(message = "At least one image is required")
     @Valid
     private List<ImageDTO> images;
+
+    @Valid
+    private List<PolicyDTO> policies;
 }

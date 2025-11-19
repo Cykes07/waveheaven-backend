@@ -12,8 +12,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -86,6 +88,21 @@ public class ProductController {
             @RequestParam(defaultValue = "10") int size) {
         log.info("GET /api/products/category/{} - Fetching products by category", categoryId);
         Page<ProductResponse> response = productService.getProductsByCategory(categoryId, page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/search")
+    @Operation(summary = "Search products", description = "Search products by name, category and availability dates")
+    public ResponseEntity<Page<ProductResponse>> searchProducts(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        log.info("GET /api/products/search - Searching products");
+        Page<ProductResponse> response = productService.searchProducts(
+                name, categoryId, startDate, endDate, page, size);
         return ResponseEntity.ok(response);
     }
 }

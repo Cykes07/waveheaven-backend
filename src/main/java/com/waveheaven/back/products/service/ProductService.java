@@ -8,9 +8,12 @@ import com.waveheaven.back.products.dto.CreateProductRequest;
 import com.waveheaven.back.products.dto.ProductResponse;
 import com.waveheaven.back.products.dto.UpdateProductRequest;
 import com.waveheaven.back.products.entity.Image;
+import com.waveheaven.back.products.entity.Policy;
 import com.waveheaven.back.products.entity.Product;
 import com.waveheaven.back.products.mapper.ProductMapper;
 import com.waveheaven.back.products.repository.ProductRepository;
+import com.waveheaven.back.reservations.entity.ReservationStatus;
+import com.waveheaven.back.reservations.repository.ReservationRepository;
 import com.waveheaven.back.shared.exception.ConflictException;
 import com.waveheaven.back.shared.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +25,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -35,8 +39,14 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final CharacteristicRepository characteristicRepository;
+    private final ReservationRepository reservationRepository;
     private final ProductMapper productMapper;
     private final Random random = new Random();
+
+    private static final List<ReservationStatus> BLOCKING_STATUSES = List.of(
+            ReservationStatus.PENDING,
+            ReservationStatus.CONFIRMED
+    );
 
     @Transactional
     public ProductResponse createProduct(CreateProductRequest request) {
@@ -60,6 +70,18 @@ public class ProductService {
         if (request.getCharacteristicIds() != null && !request.getCharacteristicIds().isEmpty()) {
             List<Characteristic> characteristics = characteristicRepository.findByIdIn(request.getCharacteristicIds());
             product.setCharacteristics(characteristics);
+        }
+
+        // Asignar políticas si se proporcionan
+        if (request.getPolicies() != null && !request.getPolicies().isEmpty()) {
+            request.getPolicies().forEach(policyDTO -> {
+                Policy policy = Policy.builder()
+                        .title(policyDTO.getTitle())
+                        .description(policyDTO.getDescription())
+                        .product(product)
+                        .build();
+                product.addPolicy(policy);
+            });
         }
 
         Product savedProduct = productRepository.save(product);
@@ -156,6 +178,19 @@ public class ProductService {
             });
         }
 
+        // Actualizar políticas si se proporcionan
+        if (request.getPolicies() != null) {
+            product.getPolicies().clear();
+            request.getPolicies().forEach(policyDTO -> {
+                Policy policy = Policy.builder()
+                        .title(policyDTO.getTitle())
+                        .description(policyDTO.getDescription())
+                        .product(product)
+                        .build();
+                product.addPolicy(policy);
+            });
+        }
+
         Product updatedProduct = productRepository.save(product);
 
         log.info("Product updated successfully with ID: {}", updatedProduct.getId());
@@ -187,5 +222,69 @@ public class ProductService {
         Page<Product> productPage = productRepository.findByCategoryId(categoryId, pageable);
 
         return productPage.map(productMapper::toResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProductResponse> searchProducts(
+            String name,
+            Long categoryId,
+            LocalDate startDate,
+            LocalDate endDate,
+            int page,
+            int size) {
+
+        log.info("Searching products - name: {}, categoryId: {}, startDate: {}, endDate: {}, page: {}, size: {}",
+                name, categoryId, startDate, endDate, page, size);
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<Product> productPage;
+
+        // Get products with reservations in the date range (to exclude)
+        List<Long> unavailableProductIds = Collections.emptyList();
+        if (startDate != null && endDate != null) {
+            unavailableProductIds = getUnavailableProductIds(startDate, endDate);
+        }
+
+        boolean hasName = name != null && !name.trim().isEmpty();
+        boolean hasCategory = categoryId != null;
+        boolean hasDateFilter = !unavailableProductIds.isEmpty();
+
+        // Determine which query to use based on filters
+        if (hasDateFilter) {
+            if (hasName && hasCategory) {
+                productPage = productRepository.searchByNameAndCategoryExcludingIds(
+                        name.trim(), categoryId, unavailableProductIds, pageable);
+            } else if (hasName) {
+                productPage = productRepository.searchByNameExcludingIds(
+                        name.trim(), unavailableProductIds, pageable);
+            } else if (hasCategory) {
+                productPage = productRepository.searchByCategoryExcludingIds(
+                        categoryId, unavailableProductIds, pageable);
+            } else {
+                productPage = productRepository.findByIdNotIn(unavailableProductIds, pageable);
+            }
+        } else {
+            if (hasName && hasCategory) {
+                productPage = productRepository.searchByNameAndCategory(
+                        name.trim(), categoryId, pageable);
+            } else if (hasName) {
+                productPage = productRepository.searchByName(name.trim(), pageable);
+            } else if (hasCategory) {
+                productPage = productRepository.searchByCategory(categoryId, pageable);
+            } else {
+                productPage = productRepository.findAllWithImages(pageable);
+            }
+        }
+
+        return productPage.map(productMapper::toResponse);
+    }
+
+    private List<Long> getUnavailableProductIds(LocalDate startDate, LocalDate endDate) {
+        // Find all products that have overlapping reservations
+        return productRepository.findAll().stream()
+                .filter(product -> reservationRepository.existsOverlappingReservation(
+                        product.getId(), startDate, endDate, BLOCKING_STATUSES))
+                .map(Product::getId)
+                .collect(Collectors.toList());
     }
 }

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenido a WaveHeaven</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #0077b6 0%, #00b4d8 100%);
+            color: #ffffff;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .greeting {
+            font-size: 20px;
+            color: #0077b6;
+            margin-bottom: 20px;
+        }
+        .info-box {
+            background-color: #e8f4f8;
+            border-left: 4px solid #0077b6;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        .info-box p {
+            margin: 5px 0;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #555555;
+        }
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #0077b6 0%, #00b4d8 100%);
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 14px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: transform 0.2s;
+        }
+        .button:hover {
+            transform: scale(1.05);
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666666;
+            border-top: 1px solid #eeeeee;
+        }
+        .footer a {
+            color: #0077b6;
+            text-decoration: none;
+        }
+        .divider {
+            height: 1px;
+            background-color: #eeeeee;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>WaveHeaven</h1>
+        </div>
+
+        <div class="content">
+            <p class="greeting" th:text="'¡Hola, ' + ${firstName} + '!'">¡Hola!</p>
+
+            <p>Tu cuenta ha sido creada exitosamente. Ya puedes disfrutar de todos los servicios que WaveHeaven tiene para ofrecerte.</p>
+
+            <div class="info-box">
+                <p><span class="info-label">Nombre:</span> <span th:text="${firstName} + ' ' + ${lastName}">Nombre Usuario</span></p>
+                <p><span class="info-label">Email:</span> <span th:text="${email}">email@ejemplo.com</span></p>
+            </div>
+
+            <p>Con tu cuenta podrás:</p>
+            <ul>
+                <li>Explorar nuestro catálogo de productos</li>
+                <li>Guardar tus favoritos</li>
+                <li>Realizar reservas</li>
+                <li>Dejar reseñas y valoraciones</li>
+            </ul>
+
+            <div class="button-container">
+                <a th:href="${loginUrl}" class="button">Iniciar Sesión</a>
+            </div>
+
+            <div class="divider"></div>
+
+            <p style="font-size: 14px; color: #666666;">
+                Si no creaste esta cuenta, puedes ignorar este mensaje.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>&copy; 2024 WaveHeaven. Todos los derechos reservados.</p>
+            <p>
+                <a th:href="${frontendUrl}">Visitar WaveHeaven</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

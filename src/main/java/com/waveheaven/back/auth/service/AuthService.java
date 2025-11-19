@@ -6,7 +6,7 @@ import com.waveheaven.back.auth.dto.RegisterRequest;
 import com.waveheaven.back.auth.entity.Role;
 import com.waveheaven.back.auth.entity.User;
 import com.waveheaven.back.auth.repository.UserRepository;
-import com.waveheaven.back.shared.exception.BadRequestException;
+import com.waveheaven.back.email.service.EmailService;
 import com.waveheaven.back.shared.exception.ConflictException;
 import com.waveheaven.back.shared.exception.UnauthorizedException;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +25,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final EmailService emailService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -41,6 +42,13 @@ public class AuthService {
                 .build();
 
         userRepository.save(user);
+
+        // Enviar email de confirmación de registro (asíncrono)
+        emailService.sendRegistrationConfirmation(
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName()
+        );
 
         String token = jwtService.generateToken(user);
 

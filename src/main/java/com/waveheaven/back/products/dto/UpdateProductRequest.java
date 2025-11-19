@@ -26,4 +26,7 @@ public class UpdateProductRequest {
 
     @Valid
     private List<ImageDTO> images;
+
+    @Valid
+    private List<PolicyDTO> policies;
 }

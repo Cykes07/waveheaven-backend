@@ -41,6 +41,10 @@ public class Product extends BaseEntity {
     @Builder.Default
     private List<Image> images = new ArrayList<>();
 
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<Policy> policies = new ArrayList<>();
+
     // Helper methods para manejar la relación bidireccional
     public void addImage(Image image) {
         images.add(image);
@@ -50,5 +54,15 @@ public class Product extends BaseEntity {
     public void removeImage(Image image) {
         images.remove(image);
         image.setProduct(null);
+    }
+
+    public void addPolicy(Policy policy) {
+        policies.add(policy);
+        policy.setProduct(this);
+    }
+
+    public void removePolicy(Policy policy) {
+        policies.remove(policy);
+        policy.setProduct(null);
     }
 }
