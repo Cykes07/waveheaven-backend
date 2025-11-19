@@ -76,6 +76,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/reviews/product/*").permitAll()
                         .requestMatchers("/api/reviews/**").authenticated()
 
+                        // WhatsApp: público (no requiere autenticación)
+                        .requestMatchers("/api/whatsapp/**").permitAll()
+
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

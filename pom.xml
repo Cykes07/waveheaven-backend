@@ -108,6 +108,13 @@
 			<artifactId>spring-boot-starter-mail</artifactId>
 		</dependency>
 
+		<!-- Twilio WhatsApp -->
+		<dependency>
+			<groupId>com.twilio.sdk</groupId>
+			<artifactId>twilio</artifactId>
+			<version>10.1.0</version>
+		</dependency>
+
 		<!-- ModelMapper for DTOs -->
 		<dependency>
 			<groupId>org.modelmapper</groupId>
