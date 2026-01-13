@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.nio.charset.StandardCharsets;
 
+
 @Service
 public class JwtService {
 
@@ -71,7 +72,7 @@ public class JwtService {
                 .parseSignedClaims(token)
                 .getPayload();
     }
-    
+
     private SecretKey getSignInKey() {
     byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
     return Keys.hmacShaKeyFor(keyBytes);
