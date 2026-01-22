@@ -15,7 +15,6 @@ public class Image {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Solo una vez. @Column(columnDefinition = "TEXT") permite base64 largo
     @Column(columnDefinition = "TEXT")
     private String url;
 

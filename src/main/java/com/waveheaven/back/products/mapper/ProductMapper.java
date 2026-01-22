@@ -24,12 +24,12 @@ public class ProductMapper {
                 .description(request.getDescription())
                 .build();
 
-        // Crear y asociar imágenes
+        // Crear y asociar imágenes (SIN altText)
         if (request.getImages() != null && !request.getImages().isEmpty()) {
             List<Image> images = request.getImages().stream()
                     .map(imageDTO -> Image.builder()
                             .url(imageDTO.getUrl())
-                            // .altText(...) <- ELIMINADO PORQUE YA NO EXISTE EN LA ENTIDAD
+                            // .altText(...) <--- ELIMINADO
                             .product(product)
                             .build())
                     .collect(Collectors.toList());
@@ -92,7 +92,6 @@ public class ProductMapper {
         return ImageDTO.builder()
                 .id(image.getId())
                 .url(image.getUrl())
-                // .altText(...) <- ELIMINADO PORQUE YA NO EXISTE EN LA ENTIDAD
                 .build();
     }
 
