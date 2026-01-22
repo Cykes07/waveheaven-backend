@@ -171,7 +171,7 @@ public class ProductService {
             request.getImages().forEach(imageDTO -> {
                 Image image = Image.builder()
                         .url(imageDTO.getUrl())
-                        .altText(imageDTO.getAltText())
+                        //.altText(imageDTO.getAltText())
                         .product(product)
                         .build();
                 product.addImage(image);

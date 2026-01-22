@@ -29,7 +29,7 @@ public class ProductMapper {
             List<Image> images = request.getImages().stream()
                     .map(imageDTO -> Image.builder()
                             .url(imageDTO.getUrl())
-                            .altText(imageDTO.getAltText())
+                            // .altText(...) <- ELIMINADO PORQUE YA NO EXISTE EN LA ENTIDAD
                             .product(product)
                             .build())
                     .collect(Collectors.toList());
@@ -92,7 +92,7 @@ public class ProductMapper {
         return ImageDTO.builder()
                 .id(image.getId())
                 .url(image.getUrl())
-                .altText(image.getAltText())
+                // .altText(...) <- ELIMINADO PORQUE YA NO EXISTE EN LA ENTIDAD
                 .build();
     }
 
