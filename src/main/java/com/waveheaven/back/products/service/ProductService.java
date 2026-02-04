@@ -19,6 +19,7 @@ import com.waveheaven.back.shared.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl; // Importante: Nuevo import
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList; // Importante: Nuevo import
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -96,15 +98,67 @@ public class ProductService {
         return productMapper.toResponse(product);
     }
 
+    // --- MÉTODO MODIFICADO PARA MOSTRAR SIEMPRE 40 PRODUCTOS ---
     @Transactional(readOnly = true)
     public Page<ProductResponse> getAllProducts(int page, int size) {
-        log.info("Fetching all products - page: {}, size: {}", page, size);
+        log.info("Fetching all products (inflated to 40) - page: {}, size: {}", page, size);
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Page<Product> productPage = productRepository.findAllWithImages(pageable);
+        // 1. Obtener todos los productos reales ordenados por ID
+        List<Product> realProducts = productRepository.findAll(Sort.by("id").ascending());
 
-        return productPage.map(productMapper::toResponse);
+        // Convertirlos a DTO
+        List<ProductResponse> realDtos = realProducts.stream()
+                .map(productMapper::toResponse)
+                .collect(Collectors.toList());
+
+        // Si no hay productos reales, retornamos vacío (necesitas al menos 1 para clonar)
+        if (realDtos.isEmpty()) {
+            return Page.empty();
+        }
+
+        // 2. Crear una lista nueva e inflarla hasta 40 items
+        List<ProductResponse> allProducts = new ArrayList<>(realDtos);
+        
+        long fakeId = 10000L; // ID inicial alto para las copias (evita colisión con reales)
+
+        while (allProducts.size() < 40) {
+            // Recorremos los originales y vamos creando copias
+            for (ProductResponse original : realDtos) {
+                if (allProducts.size() >= 40) break;
+
+                // Creamos un clon con un ID falso
+                ProductResponse copy = ProductResponse.builder()
+                        .id(fakeId++) // ID Falso único
+                        .name(original.getName()) 
+                        .description(original.getDescription())
+                        .categoryId(original.getCategoryId())
+                        .categoryTitle(original.getCategoryTitle())
+                        .characteristics(original.getCharacteristics())
+                        .images(original.getImages())
+                        .policies(original.getPolicies())
+                        .createdAt(original.getCreatedAt())
+                        .updatedAt(original.getUpdatedAt())
+                        .build();
+
+                allProducts.add(copy);
+            }
+        }
+
+        // 3. Paginación Manual sobre la lista de 40 items
+        int start = page * size;
+        int end = Math.min((start + size), allProducts.size());
+        
+        List<ProductResponse> pageContent;
+        if (start >= allProducts.size()) {
+            pageContent = Collections.emptyList();
+        } else {
+            pageContent = allProducts.subList(start, end);
+        }
+
+        // Retornamos la página construida manualmente
+        return new PageImpl<>(pageContent, PageRequest.of(page, size), allProducts.size());
     }
+    // -----------------------------------------------------------
 
     @Transactional(readOnly = true)
     public List<ProductResponse> getRandomProducts(int count) {
